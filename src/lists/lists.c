@@ -79,11 +79,10 @@ int load_list(int list_number, int choice_type_insert, int data) {
     	if (file_list && !flag_error) {
             int data_list;
             while(fscanf(file_list, "%d", &data_list) != EOF) {
-                printf("Загружаем число: %d\n", data_list);  // <- Добавьте эту строку
-		insert_node(list, data_list, 2); // подгружаем список 
+		insert_node(&list, data_list, 2); 
             }
 
-	    insert_node(list, data, choice_type_insert);
+	    insert_node(&list, data, choice_type_insert);
 	    
 	    save_list(&list, path_to_list);
 
@@ -99,18 +98,17 @@ int load_list(int list_number, int choice_type_insert, int data) {
 int load_list_info() {
     int flag_error = SUCCESS;
     
-    
-
     FILE *file = fopen(path_to_list_info, "r");
     if (file) {
-        ListCollection* lists = malloc(sizeof(ListCollection));
-        lists->count = 0;
+        char buffer[256];
         
-        while (fscanf(file, "%255s", lists->paths[lists->count]) == 1 && lists->count < MAX_LISTS-1) {
-            printf("%d. %s\n", lists->count + 1, lists->paths[lists->count]);
-            lists->count++;
+        while (fgets(buffer, sizeof(buffer), file)) {
+            // Удаляем символ новой строки (если он есть)
+            buffer[strcspn(buffer, "\n")] = '\0';
+            
+            // Выводим строку в исходном формате (например, "1. ../list_files/list1.txt")
+            printf("%s\n", buffer);
         }
-        free(lists);
         
         fclose(file);
     } else {
@@ -192,7 +190,6 @@ int insert_node(LINKED_LIST** list,
                 int           data,
                 int           type_insert) {
     int flag_error = SUCCESS;
-    printf("Добавляем элемент %d (тип вставки: %d)\n", data, type_insert);  // <- Отладочный вывод
     NODE* node = NULL;
     switch(type_insert) {
         case 1:
@@ -245,7 +242,6 @@ int converting_to_string(LINKED_LIST** list, char* string, size_t size_string) {
 
     while(current    != NULL &&
           flag_error == SUCCESS) {
-	printf("Текущий узел: %d\n", current->data);  // Перед snprintf
 	int written = snprintf(current_pos, remaining, "%d ", current->data);
 
         if (written < 0 || (size_t)written >= remaining) {
@@ -271,9 +267,6 @@ int save_list(LINKED_LIST** list, char* path_to_list) {
     if(list == NULL || *list == NULL || path_to_list == NULL)
 	flag_error = 1;
 
-    if ((*list)->size == 0)
-        printf("Список пуст! Нечего сохранять.\n");
-
     if(flag_error == SUCCESS) {
         size_t result_size = (*list)->size * 20 + 1;
         char* result = (char*)malloc(result_size);
@@ -283,8 +276,7 @@ int save_list(LINKED_LIST** list, char* path_to_list) {
 
     	if(flag_error == SUCCESS)
             flag_error = converting_to_string(list, result, result_size);
-	
-	printf("Данные для сохранения: '%s'\n", result);
+    
 	save_to_file(result, path_to_list);
 
     	free(result);
