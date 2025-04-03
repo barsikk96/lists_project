@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "xutility": "c",
+        "output.h": "c",
+        "lists.h": "c"
+    }
+}
