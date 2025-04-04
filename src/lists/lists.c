@@ -44,6 +44,45 @@ int create_node(NODE** node,
     return flag_error;
 }
 
+int create_list_file() {
+    int flag_error = SUCCESS;
+    int max_list_num = 0;
+
+    FILE* file_info = fopen(path_to_list_info, "a+");
+
+    if(file_info) {
+        char buffer[1024];
+        // Сначала находим максимальный номер списка
+        while(fgets(buffer, sizeof(buffer), file_info)) {
+            int current_num = 0;
+            if(sscanf(buffer, "%d%*[^\n]", &current_num) == 1) {
+                if(current_num > max_list_num) {
+                    max_list_num = current_num;
+                }
+            }
+        }
+        
+        // Создаем новый список с номером на 1 больше максимального
+        int new_list_num = max_list_num + 1;
+        char path[256];
+        sprintf(path, "../list_files/list%d.txt", new_list_num);
+        
+        FILE* new_list = fopen(path, "a");
+        if(new_list) {
+            fclose(new_list);
+            fprintf(file_info, "%d. ../list_files/list%d.txt\n", new_list_num, new_list_num);
+        } else {
+            flag_error = 1;
+        }
+        
+        fclose(file_info);
+    } else {
+        flag_error = 1;
+    }
+    
+    return flag_error;
+}
+
 char* load_path_list_file(int choice_list) {
     FILE *file_info = fopen(path_to_list_info, "r");
     char* path_to_list = NULL;
@@ -103,10 +142,8 @@ int load_list_info() {
         char buffer[256];
         
         while (fgets(buffer, sizeof(buffer), file)) {
-            // Удаляем символ новой строки (если он есть)
             buffer[strcspn(buffer, "\n")] = '\0';
             
-            // Выводим строку в исходном формате (например, "1. ../list_files/list1.txt")
             printf("%s\n", buffer);
         }
         

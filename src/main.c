@@ -37,6 +37,8 @@ int main() {
 	    printf("Список с новым значением:\n");
 	    print_file_list(list_number);
 	}
+    } else if(choice_action_list == 2) {
+	create_list_file();
     }
 
     return flag_error;

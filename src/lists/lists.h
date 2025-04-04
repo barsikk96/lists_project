@@ -39,6 +39,8 @@ int create_linked_list(LINKED_LIST** link);
 
 int create_node(NODE** node, int data);
 
+int create_list_file();
+
 char* load_path_list_file(int choice_list);
 
 int load_list(int choice_list, int choice_type_insert, int data);
