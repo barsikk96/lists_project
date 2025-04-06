@@ -7,6 +7,7 @@
 #define ERROR_NULL_POINTER 3
 #define ERROR_BUFFER_OVERFLOW 4
 #define ERROR_OPEN_FILE 5
+#define ERROR_FILE_EXISTS 6
 
 #define MAX_LISTS 10
 #define MAX_PATH 256
@@ -16,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 extern const char *list_info_file;
 
@@ -60,6 +62,8 @@ int insert_node(LINKED_LIST** list,
                 int           type_insert);
 
 int free_list(LINKED_LIST** list);
+
+int delete_list_file(int list_number);
 
 int converting_to_string(LINKED_LIST** list, char* string, size_t size_string);
 

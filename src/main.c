@@ -15,11 +15,13 @@ int main() {
         printf("Выберите номер списка:\n");
         int list_number;
         scanf("%d", &list_number);
+	printf("Список (%d): ", list_number);
 	print_file_list(list_number);
 
 	printf("Выберите действие:\n"
-	       "1. Добавить число.\n"
-			"2. Выйти.\n");
+	       "1. Добавить число.\n" 
+	       "2. Удалить список.\n"
+			"3. Выйти.\n");
 	int choice_action;
 	scanf("%d", &choice_action);
 	if(choice_action == 1) {
@@ -36,9 +38,14 @@ int main() {
 
 	    printf("Список с новым значением:\n");
 	    print_file_list(list_number);
+	} else if (choice_action == 2) {
+	    delete_list_file(list_number); 
+	    printf("Список (%d) был удалён!\n", list_number);
 	}
     } else if(choice_action_list == 2) {
-	create_list_file();
+	printf("Введите имя файла: ");
+	if(create_list_file() != SUCCESS)
+    	    printf("Ошибка создания файла!\n");
     }
 
     return flag_error;

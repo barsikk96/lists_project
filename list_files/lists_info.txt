@@ -1,2 +1,0 @@
-1. ../list_files/list1.txt
-2. ../list_files/list2.txt

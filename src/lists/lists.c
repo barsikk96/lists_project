@@ -52,7 +52,6 @@ int create_list_file() {
 
     if(file_info) {
         char buffer[1024];
-        // Сначала находим максимальный номер списка
         while(fgets(buffer, sizeof(buffer), file_info)) {
             int current_num = 0;
             if(sscanf(buffer, "%d%*[^\n]", &current_num) == 1) {
@@ -62,20 +61,28 @@ int create_list_file() {
             }
         }
         
-        // Создаем новый список с номером на 1 больше максимального
         int new_list_num = max_list_num + 1;
-        char path[256];
-        sprintf(path, "../list_files/list%d.txt", new_list_num);
+        char path[275];
+	char file_name[255];
+	scanf("%254s", file_name);
+        snprintf(path, sizeof(path), "../list_files/%s.txt", file_name);
+
+	if(access(path, F_OK) == 0) {
+            fclose(file_info);
+            flag_error = ERROR_FILE_EXISTS;  
+	}
         
-        FILE* new_list = fopen(path, "a");
-        if(new_list) {
-            fclose(new_list);
-            fprintf(file_info, "%d. ../list_files/list%d.txt\n", new_list_num, new_list_num);
-        } else {
-            flag_error = 1;
-        }
+	if(flag_error == SUCCESS) {
+            FILE* new_list = fopen(path, "a");
+            if(new_list) {
+            	fclose(new_list);
+            	fprintf(file_info, "%d. ../list_files/%s.txt\n", new_list_num, file_name);
+            } else {
+            	flag_error = 1;
+            }
         
-        fclose(file_info);
+            fclose(file_info);
+	}
     } else {
         flag_error = 1;
     }
@@ -263,6 +270,55 @@ int free_list(LINKED_LIST** list)
     return flag_error;
 }
 
+int delete_list_file(int list_number) {
+    int flag_error = SUCCESS;
+
+    char* list = load_path_list_file(list_number);
+    if (remove(list))
+	flag_error = 1;
+    free(list);
+
+    if(flag_error == SUCCESS) {
+	FILE *file_info = fopen(path_to_list_info, "r+");
+	if(!file_info) flag_error = 1;
+
+	if(flag_error == SUCCESS) {
+            FILE *temp_file = fopen("../list_files/temp.txt", "w");
+            if (!temp_file) {
+                fclose(file_info);
+                flag_error = 1;
+	    }
+	    if(flag_error == SUCCESS) {
+            	char buffer[1024];
+            	int current_line = 1;
+            	int new_line_num = 1;
+
+            	while (fgets(buffer, sizeof(buffer), file_info)) {
+                    int line_num;
+            	    char path[256];
+            
+                    if (sscanf(buffer, "%d. %255[^\n]", &line_num, path) == 2) {
+                    	if (line_num != list_number) {
+			    fprintf(temp_file, "%d. %s\n", new_line_num, path);
+                    	    new_line_num++;
+                    	}
+                    } else {
+                    	fputs(buffer, temp_file);
+                    }
+            	}
+
+            	fclose(file_info);
+            	fclose(temp_file);
+	    
+        	remove(path_to_list_info);
+        	rename("../list_files/temp.txt", path_to_list_info);
+	    }
+    	}
+    }
+    
+    return flag_error;
+}
+
 int converting_to_string(LINKED_LIST** list, char* string, size_t size_string) {
     int flag_error = SUCCESS;
 
@@ -281,9 +337,8 @@ int converting_to_string(LINKED_LIST** list, char* string, size_t size_string) {
           flag_error == SUCCESS) {
 	int written = snprintf(current_pos, remaining, "%d ", current->data);
 
-        if (written < 0 || (size_t)written >= remaining) {
-          flag_error = ERROR_BUFFER_OVERFLOW; // Переполнение буфера
-        }
+        if (written < 0 || (size_t)written >= remaining)
+          flag_error = ERROR_BUFFER_OVERFLOW; 
 
         if (flag_error == SUCCESS) {
             current_pos += written;
@@ -333,8 +388,9 @@ int print_file_list(int choice_list) {
 	    char buffer[256];
 	    if(fgets(buffer, sizeof(buffer), file) != NULL) {
 	    	buffer[strcspn(buffer, "\n")] = '\0';
-	    	printf("%s\n", buffer);
+	    	printf("%s", buffer);
 	    }
+	    printf("\n");
 	    fclose(file);
     	} else {
 	    flag_error = 1;
