@@ -1,0 +1,2 @@
+1. ../list_files/hello_kitty.txt
+2. ../list_files/delete_me.txt

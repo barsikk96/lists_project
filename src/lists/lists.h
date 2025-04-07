@@ -32,43 +32,44 @@ typedef struct {
     size_t size;
 } LINKED_LIST;
 
-typedef struct {
-    char paths[MAX_LISTS][MAX_PATH];
-    int count;
-} ListCollection;
+int   create_linked_list(LINKED_LIST** link);
 
-int create_linked_list(LINKED_LIST** link);
+int   create_node(NODE** node, 
+		  int    data);
 
-int create_node(NODE** node, int data);
-
-int create_list_file();
+int   create_list_file();
 
 char* load_path_list_file(int choice_list);
 
-int load_list(int choice_list, int choice_type_insert, int data);
+int   load_list(int choice_list, 
+		int choice_type_insert, 
+		int data);
 
-int load_list_info();
+int   load_list_info();
 
-int insert_node_at_beginning(LINKED_LIST** list, 
-                             NODE**        node, 
-                             int           data);
+int   insert_node_at_beginning(LINKED_LIST** list, 
+                               NODE**        node, 
+                               int           data);
 
-int insert_node_at_end(LINKED_LIST** list, 
-                       NODE**        node, 
-                       int           data);
+int   insert_node_at_end(LINKED_LIST** list, 
+                         NODE**        node, 
+                         int           data);
 
-int insert_node(LINKED_LIST** list,
-                int           data,
-                int           type_insert);
+int   insert_node(LINKED_LIST** list,
+                  int           data,
+                  int           type_insert);
 
-int free_list(LINKED_LIST** list);
+int   free_list(LINKED_LIST** list);
 
-int delete_list_file(int list_number);
+int   delete_list_file(int list_number);
 
-int converting_to_string(LINKED_LIST** list, char* string, size_t size_string);
+int   converting_to_string(LINKED_LIST** list, 
+			   char*         string, 
+			   size_t        size_string);
 
-int save_list(LINKED_LIST** list, char* path_to_list);
+int   save_list(LINKED_LIST** list, 
+		char*         path_to_list);
 
-int print_file_list(int choice_list);
+int   print_file_list(int choice_list);
 
 #endif

@@ -8,10 +8,10 @@ int create_linked_list(LINKED_LIST** link)
     int flag_error = SUCCESS;
 
     *link = malloc(sizeof(LINKED_LIST));
-    if (*link == NULL)
+    if(*link == NULL)
         flag_error = ERROR_MEMORY_ALLOCATION;
 
-    if (!flag_error)
+    if(!flag_error)
     {
         (*link)->head = NULL;
         (*link)->tail = NULL;
@@ -25,16 +25,16 @@ int create_node(NODE** node,
                 int    data) {
     int flag_error = SUCCESS;
 
-    if (node == NULL)
+    if(node == NULL)
         flag_error = ERROR_NULL_POINTER;
 
-    if (!flag_error)
+    if(!flag_error)
     {
-        *node = malloc(sizeof(NODE));
-        if (*node == NULL)
+        *node     = malloc(sizeof(NODE));
+        if(*node == NULL)
             flag_error = ERROR_MEMORY_ALLOCATION;
 
-        if (!flag_error)
+        if(flag_error == SUCCESS)
         {
             (*node)->data = data;
             (*node)->next = NULL;
@@ -45,27 +45,32 @@ int create_node(NODE** node,
 }
 
 int create_list_file() {
-    int flag_error = SUCCESS;
+    int flag_error   = SUCCESS;
     int max_list_num = 0;
 
     FILE* file_info = fopen(path_to_list_info, "a+");
+    if(file_info   == NULL)
+	flag_error  = ERROR_OPEN_FILE;
 
-    if(file_info) {
+    if(flag_error == SUCCESS) {
         char buffer[1024];
-        while(fgets(buffer, sizeof(buffer), file_info)) {
+        
+	while(fgets(buffer, sizeof(buffer), file_info)) {
             int current_num = 0;
-            if(sscanf(buffer, "%d%*[^\n]", &current_num) == 1) {
+            
+	    if(sscanf(buffer, "%d%*[^\n]", &current_num) == 1) {
                 if(current_num > max_list_num) {
-                    max_list_num = current_num;
+                    max_list_num 	  = current_num;
                 }
             }
         }
         
         int new_list_num = max_list_num + 1;
-        char path[275];
+	char path[275];
 	char file_name[255];
 	scanf("%254s", file_name);
-        snprintf(path, sizeof(path), "../list_files/%s.txt", file_name);
+        
+	snprintf(path, sizeof(path), "../list_files/%s.txt", file_name);
 
 	if(access(path, F_OK) == 0) {
             fclose(file_info);
@@ -74,32 +79,38 @@ int create_list_file() {
         
 	if(flag_error == SUCCESS) {
             FILE* new_list = fopen(path, "a");
-            if(new_list) {
+	    if(	  new_list == NULL)
+		flag_error  = ERROR_OPEN_FILE;
+            
+	    if(flag_error == SUCCESS) {
             	fclose(new_list);
-            	fprintf(file_info, "%d. ../list_files/%s.txt\n", new_list_num, file_name);
-            } else {
-            	flag_error = 1;
+            	fprintf(file_info, 
+			"%d. ../list_files/%s.txt\n", new_list_num, file_name);
             }
         
             fclose(file_info);
 	}
-    } else {
-        flag_error = 1;
     }
     
     return flag_error;
 }
 
 char* load_path_list_file(int choice_list) {
+    int flag_error = SUCCESS;
+
     FILE *file_info = fopen(path_to_list_info, "r");
+    if(   file_info == NULL)
+	flag_error   = ERROR_OPEN_FILE;
+    
     char* path_to_list = NULL;
 
-    if(file_info) {
+    if(flag_error == SUCCESS) {
 	char buffer[1024];
-	while (fgets(buffer, sizeof(buffer), file_info)) {
-	    int line_num;
+	while(fgets(buffer, sizeof(buffer), file_info)) {
+	    int  line_num;
 	    char path[256];
-	    if(sscanf(buffer, "%d. %255[^\n]", &line_num, path) == 2) {
+	    if(sscanf(buffer,
+		      "%d. %255[^\n]", &line_num, path) == 2) {
 		if(line_num == choice_list) {
 		    path_to_list = strdup(path);
 		}
@@ -111,26 +122,38 @@ char* load_path_list_file(int choice_list) {
     return path_to_list;
 }
 
-int load_list(int list_number, int choice_type_insert, int data) {
+int load_list(int list_number, 
+	      int choice_type_insert, 
+	      int data) {
     int flag_error = SUCCESS;
     
     FILE *file_info = fopen(path_to_list_info, "r");
-    char* path_to_list = load_path_list_file(list_number);
+    if(   file_info == NULL)
+	flag_error = ERROR_OPEN_FILE;
     
-    if(path_to_list) {
+    char* path_to_list = load_path_list_file(list_number);
+    if(   path_to_list == NULL)
+	flag_error = ERROR_MEMORY_ALLOCATION;
+    
+    if(flag_error == SUCCESS) {
     	LINKED_LIST* list = NULL;
-    	if(create_linked_list(&list))
-            flag_error = 1;
+    	flag_error = create_linked_list(&list);
+
     	FILE *file_list = fopen(path_to_list, "r");
-    	if (file_list && !flag_error) {
+	if(   file_list == NULL)
+	    flag_error = ERROR_OPEN_FILE;
+
+    	if (flag_error == SUCCESS) {
             int data_list;
-            while(fscanf(file_list, "%d", &data_list) != EOF) {
-		insert_node(&list, data_list, 2); 
+            while(fscanf(file_list, "%d", &data_list) != EOF
+		  			&& flag_error == SUCCESS) {
+		flag_error = insert_node(&list, data_list, 2); 
             }
 
-	    insert_node(&list, data, choice_type_insert);
+	    flag_error = insert_node(&list, data, choice_type_insert);
 	    
-	    save_list(&list, path_to_list);
+	    if(flag_error == SUCCESS)
+	    	save_list(&list, path_to_list);
 
 	    free_list(&list);
 	    fclose(file_list);
@@ -145,7 +168,10 @@ int load_list_info() {
     int flag_error = SUCCESS;
     
     FILE *file = fopen(path_to_list_info, "r");
-    if (file) {
+    if(   file == NULL)
+	flag_error = ERROR_OPEN_FILE;
+
+    if (flag_error == SUCCESS) {
         char buffer[256];
         
         while (fgets(buffer, sizeof(buffer), file)) {
@@ -155,9 +181,8 @@ int load_list_info() {
         }
         
         fclose(file);
-    } else {
-        flag_error = ERROR_OPEN_FILE;
     }
+
     return flag_error;
 }
 
@@ -165,22 +190,19 @@ int insert_node_at_beginning(LINKED_LIST** list,
                              NODE**        node,
                              int           data)
 {
-    int flag_error = SUCCESS;
+    int flag_error  = SUCCESS;
 
-    if (*node != NULL)
-        flag_error = ERROR_MEMORY_LEAK;
+    if( *node != NULL)
+        flag_error  = ERROR_MEMORY_LEAK;
 
-    if (list == NULL || *list == NULL)
-        flag_error = ERROR_NULL_POINTER;
+    if( list == NULL || *list == NULL)
+        flag_error  = ERROR_NULL_POINTER;
 
-    if (!flag_error)
-    {
-        if (create_node(node, data))
-            flag_error = ERROR_MEMORY_ALLOCATION;
+    if( flag_error == SUCCESS){
+        flag_error  = create_node(node, data);
 
-        if (!flag_error)
-        {
-            if ((*list)->head == NULL)
+        if(flag_error == SUCCESS) {
+            if( (*list)->head == NULL)
                 (*list)->tail = *node;
 
             (*node)->next = (*list)->head;
@@ -194,31 +216,24 @@ int insert_node_at_beginning(LINKED_LIST** list,
 
 int insert_node_at_end(LINKED_LIST** list,
                        NODE**        node,
-                       int           data)
-{
-    int flag_error = SUCCESS;
+                       int           data) {
+    int flag_error  = SUCCESS;
 
-    if (*node != NULL)
-        flag_error = ERROR_MEMORY_LEAK;
+    if( *node != NULL)
+        flag_error  = ERROR_MEMORY_LEAK;
 
-    if (list == NULL || *list == NULL)
-        flag_error = ERROR_NULL_POINTER;
+    if( list == NULL || *list == NULL)
+        flag_error  = ERROR_NULL_POINTER;
 
-    if (!flag_error)
-    {
-        if (create_node(node, data))
-            flag_error = ERROR_MEMORY_ALLOCATION;
+    if( flag_error == SUCCESS) {
+        flag_error  = create_node(node, data);
 
-        if (!flag_error)
-        {
-            if ((*list)->head == NULL)
-            {
+        if(flag_error == SUCCESS) {
+            if( (*list)->head == NULL) {
                 (*list)->head = *node;
                 (*list)->tail = *node;
                 (*list)->size++;
-            }
-            else
-            {
+            } else {
                 NODE *current_tail = (*list)->tail;
                 current_tail->next = *node;
                 (*list)->tail = *node;
@@ -234,32 +249,33 @@ int insert_node(LINKED_LIST** list,
                 int           data,
                 int           type_insert) {
     int flag_error = SUCCESS;
+    
     NODE* node = NULL;
     switch(type_insert) {
         case 1:
             flag_error = insert_node_at_beginning(list, &node, data);
             break;
         case 2:
-            flag_error = insert_node_at_end(list, &node, data);
+            flag_error =       insert_node_at_end(list, &node, data);
             break;
         default:
             break;        
     }
+
+    return flag_error;
 }
 
-int free_list(LINKED_LIST** list)
-{
+int free_list(LINKED_LIST** list) {
     int flag_error = SUCCESS;
 
-    if (list == NULL || *list == NULL)
+    if( list == NULL || *list == NULL)
         flag_error = ERROR_NULL_POINTER;
 
-    if (!flag_error)
-    {
-        NODE* current = (*list)->head;
-        while (current != NULL)
-        {
-            NODE* temp = current->next;
+    if( flag_error == SUCCESS) {
+        NODE* current  = (*list)->head;
+        
+	while(current != NULL) {
+            NODE*     temp = current->next;
             free(current);
             current = temp;
         }
@@ -271,34 +287,38 @@ int free_list(LINKED_LIST** list)
 }
 
 int delete_list_file(int list_number) {
-    int flag_error = SUCCESS;
+    int   flag_error = SUCCESS;
 
-    char* list = load_path_list_file(list_number);
-    if (remove(list))
-	flag_error = 1;
-    free(list);
+    char* list  = load_path_list_file(list_number);
+    if(   list == NULL)
+	  flag_error = ERROR_MEMORY_ALLOCATION;
+
+    if (flag_error == SUCCESS){
+	remove(list);
+    	free(list);
+    }
 
     if(flag_error == SUCCESS) {
-	FILE *file_info = fopen(path_to_list_info, "r+");
-	if(!file_info) flag_error = 1;
+	FILE *file_info  = fopen(path_to_list_info, "r+");
+	if(   file_info == NULL) 
+	      flag_error = ERROR_OPEN_FILE;
 
 	if(flag_error == SUCCESS) {
-            FILE *temp_file = fopen("../list_files/temp.txt", "w");
-            if (!temp_file) {
+            FILE *temp_file  = fopen("../list_files/temp.txt", "w");
+            if(   temp_file == NULL) {
                 fclose(file_info);
-                flag_error = 1;
+                flag_error   = ERROR_OPEN_FILE;
 	    }
 	    if(flag_error == SUCCESS) {
             	char buffer[1024];
-            	int current_line = 1;
-            	int new_line_num = 1;
+            	int  new_line_num = 1;
 
-            	while (fgets(buffer, sizeof(buffer), file_info)) {
-                    int line_num;
+            	while(fgets(buffer, sizeof(buffer), file_info)) {
+                    int  line_num;
             	    char path[256];
             
-                    if (sscanf(buffer, "%d. %255[^\n]", &line_num, path) == 2) {
-                    	if (line_num != list_number) {
+                    if(sscanf(buffer, "%d. %255[^\n]", &line_num, path) == 2) {
+                    	if(line_num != list_number) {
 			    fprintf(temp_file, "%d. %s\n", new_line_num, path);
                     	    new_line_num++;
                     	}
@@ -311,7 +331,9 @@ int delete_list_file(int list_number) {
             	fclose(temp_file);
 	    
         	remove(path_to_list_info);
-        	rename("../list_files/temp.txt", path_to_list_info);
+        	
+		rename("../list_files/temp.txt", 
+		       path_to_list_info);
 	    }
     	}
     }
@@ -319,82 +341,102 @@ int delete_list_file(int list_number) {
     return flag_error;
 }
 
-int converting_to_string(LINKED_LIST** list, char* string, size_t size_string) {
+int converting_to_string(LINKED_LIST** list, 
+			 char* 	       string, 
+			 size_t        size_string) {
     int flag_error = SUCCESS;
 
-    if (list == NULL || *list == NULL || string == NULL)
+    if(list   == NULL || 
+      *list   == NULL || 
+       string == NULL)
         flag_error = ERROR_NULL_POINTER;
-    if (size_string == 0)
-        flag_error = ERROR_BUFFER_OVERFLOW;
-
-    NODE* current     = (*list)->head;
-    char* current_pos = string;
-    size_t remaining  = size_string;
-
-    string[0] = '\0';
-
-    while(current    != NULL &&
-          flag_error == SUCCESS) {
-	int written = snprintf(current_pos, remaining, "%d ", current->data);
-
-        if (written < 0 || (size_t)written >= remaining)
-          flag_error = ERROR_BUFFER_OVERFLOW; 
-
-        if (flag_error == SUCCESS) {
-            current_pos += written;
-            remaining   -= written;
-            current      = current->next;
-        }
-    }
     
-    if (flag_error == SUCCESS && current_pos > string) {
-          *(current_pos - 1) = '\0';
+    if(size_string == 0)
+        flag_error = ERROR_BUFFER_OVERFLOW;
+	
+    if(flag_error == SUCCESS) {
+    	NODE* current     = (*list)->head;
+    	char* current_pos = string;
+    	size_t remaining  = size_string;
+
+    	string[0] = '\0';
+    
+
+    	while(current != NULL) {
+	    int written = snprintf(current_pos, remaining, "%d ", current->data);
+
+            if(          written <  0 || 
+		 (size_t)written >= remaining)
+        	flag_error = ERROR_BUFFER_OVERFLOW; 
+
+            if(flag_error == SUCCESS) {
+                current_pos += written;
+                remaining   -= written;
+                current      = current->next;
+            }
+        }
+    
+    
+    	if (flag_error == SUCCESS && 
+	      current_pos      > string)
+	    *(current_pos - 1) = '\0';
     }
 
     return flag_error;
 }
 
-int save_list(LINKED_LIST** list, char* path_to_list) {
+int save_list(LINKED_LIST** list, 
+	      char*         path_to_list) {
     int flag_error = SUCCESS;
-    if(list == NULL || *list == NULL || path_to_list == NULL)
-	flag_error = 1;
+    if(list         == NULL || 
+      *list 	    == NULL || 
+       path_to_list == NULL)
+	flag_error = ERROR_NULL_POINTER;
 
-    if(flag_error == SUCCESS) {
+    if( flag_error == SUCCESS) {
         size_t result_size = (*list)->size * 20 + 1;
-        char* result = (char*)malloc(result_size);
-        if(result == NULL) 
-            flag_error = 1;
+        
+	char*  result  = (char*)malloc(result_size);
+        if(    result == NULL) 
+            flag_error = ERROR_MEMORY_ALLOCATION;
     
 
     	if(flag_error == SUCCESS)
             flag_error = converting_to_string(list, result, result_size);
-    
-	save_to_file(result, path_to_list);
-
-    	free(result);
+	
+	if(flag_error == SUCCESS) {
+	    save_to_file(result, path_to_list);
+	    free(result);
+	}
     }
 
     return flag_error;
 }
 
 int print_file_list(int choice_list) {
-    int flag_error = 0;
+    int flag_error = SUCCESS;
     
-    char* path_to_list = load_path_list_file(choice_list);
-
-    if(path_to_list != NULL) {
+    char* path_to_list  = load_path_list_file(choice_list);
+    if(   path_to_list == NULL)
+	flag_error = ERROR_MEMORY_ALLOCATION;
+    
+    if(flag_error == SUCCESS) {
     	FILE* file = fopen(path_to_list, "r");
-        if(file) {
+        if(   file == NULL)
+	    flag_error = ERROR_OPEN_FILE;
+	
+	if(flag_error == SUCCESS) {
 	    char buffer[256];
 	    if(fgets(buffer, sizeof(buffer), file) != NULL) {
 	    	buffer[strcspn(buffer, "\n")] = '\0';
-	    	printf("%s", buffer);
+	    	printf("%s",   buffer);
 	    }
 	    printf("\n");
 	    fclose(file);
-    	} else {
-	    flag_error = 1;
     	}
+
     	free(path_to_list);
     }
+
+    return flag_error;
 }
