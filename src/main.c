@@ -21,7 +21,8 @@ int main() {
 	printf("Выберите действие:\n"
 	       "1. Добавить число.\n" 
 	       "2. Удалить список.\n"
-			"3. Выйти.\n");
+	        "3. Удалить число.\n"
+			"4. Выйти.\n");
 	int choice_action;
 	scanf("%d", &choice_action);
 	if(choice_action == 1) {
@@ -34,13 +35,22 @@ int main() {
                        "    2. В конец списка.\n");
 	    int type_insert;
     	    scanf("%d", &type_insert);
-    	    load_list(list_number, type_insert, data);
+    	    action_main(list_number, data, type_insert);
 
 	    printf("Список с новым значением:\n");
 	    print_file_list(list_number);
-	} else if (choice_action == 2) {
+	} else if(choice_action == 2) {
 	    delete_list_file(list_number); 
 	    printf("Список (%d) был удалён!\n", list_number);
+	} else if(choice_action == 3) {
+	    printf("Введите удаляемое значение:\n");
+            int data;
+            scanf("%d", &data);
+
+	    action_main(list_number, data, choice_action);
+
+	    printf("Обновлённый список:\n");
+	    print_file_list(list_number);
 	}
     } else if(choice_action_list == 2) {
 	printf("Введите имя файла: ");

@@ -122,10 +122,10 @@ char* load_path_list_file(int choice_list) {
     return path_to_list;
 }
 
-int load_list(int list_number, 
-	      int choice_type_insert, 
-	      int data) {
+LINKED_LIST* load_list(int list_number) {
     int flag_error = SUCCESS;
+
+    LINKED_LIST* list = NULL;
     
     FILE *file_info = fopen(path_to_list_info, "r");
     if(   file_info == NULL)
@@ -136,7 +136,6 @@ int load_list(int list_number,
 	flag_error = ERROR_MEMORY_ALLOCATION;
     
     if(flag_error == SUCCESS) {
-    	LINKED_LIST* list = NULL;
     	flag_error = create_linked_list(&list);
 
     	FILE *file_list = fopen(path_to_list, "r");
@@ -147,21 +146,16 @@ int load_list(int list_number,
             int data_list;
             while(fscanf(file_list, "%d", &data_list) != EOF
 		  			&& flag_error == SUCCESS) {
-		flag_error = insert_node(&list, data_list, 2); 
+		flag_error = action_with_node(&list, 
+					       data_list, 
+					       2); 
             }
-
-	    flag_error = insert_node(&list, data, choice_type_insert);
-	    
-	    if(flag_error == SUCCESS)
-	    	save_list(&list, path_to_list);
-
-	    free_list(&list);
 	    fclose(file_list);
         }
         free(path_to_list);
     } 
 
-    return flag_error;
+    return list;
 }
 
 int load_list_info() {
@@ -245,19 +239,56 @@ int insert_node_at_end(LINKED_LIST** list,
     return flag_error;
 }
 
-int insert_node(LINKED_LIST** list,
-                int           data,
-                int           type_insert) {
+int action_main(int list_number,
+		int data,
+		int type_action) {
     int flag_error = SUCCESS;
+
+    LINKED_LIST* list = load_list(list_number);
+    if(list == NULL) {
+	flag_error = ERROR_MEMORY_ALLOCATION;
+    }
+
+    char* path_to_list = load_path_list_file(list_number);
+    if(   path_to_list == NULL)
+	flag_error = ERROR_MEMORY_ALLOCATION;
+ 
+
+    flag_error = action_with_node(&list, 
+		    		   data, 
+				   type_action);
     
+    if(flag_error == SUCCESS) {
+	save_list(&list, path_to_list);
+	free(path_to_list);
+    }
+
+    if(flag_error != ERROR_MEMORY_ALLOCATION)
+    	free_list(&list);
+
+    return flag_error;
+}
+
+int action_with_node(LINKED_LIST** list,
+                     int           data,
+                     int           type_action) {
+    int flag_error = SUCCESS;
+
     NODE* node = NULL;
-    switch(type_insert) {
+    switch(type_action) {
         case 1:
-            flag_error = insert_node_at_beginning(list, &node, data);
+            flag_error = insert_node_at_beginning(list, 
+			    			 &node, 
+						  data);
             break;
         case 2:
-            flag_error =       insert_node_at_end(list, &node, data);
+            flag_error =       insert_node_at_end(list, 
+			    			 &node, 
+						  data);
             break;
+	case 3:
+	    flag_error =     delete_node_by_value(list,
+			    			  data);
         default:
             break;        
     }
@@ -338,6 +369,40 @@ int delete_list_file(int list_number) {
     	}
     }
     
+    return flag_error;
+}
+
+int delete_node_by_value(LINKED_LIST** list,
+			 int	       target) {
+    int flag_error  = SUCCESS;
+    
+    if( list == NULL || *list == NULL)
+        flag_error  = ERROR_NULL_POINTER;
+
+    if( flag_error == SUCCESS) {
+	NODE* current = (*list)->head;
+	NODE* prev = NULL;
+    	char  find_flag = 0;
+    	
+	while( current != NULL && find_flag == 0) {
+	    if(current->data == target) {
+		if(prev == NULL)
+		    (*list)->head = current->next;
+		else
+		    prev->next    = current->next;
+		
+		free(current);
+		find_flag = 1;
+	    } else {
+		prev = current;
+		current = current->next;
+	    }
+    	}
+
+	if(find_flag == 0)
+	    flag_error = ERROR_TARGET_NOT_FOUND;
+    }
+
     return flag_error;
 }
 

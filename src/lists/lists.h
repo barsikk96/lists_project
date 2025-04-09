@@ -8,6 +8,7 @@
 #define ERROR_BUFFER_OVERFLOW 4
 #define ERROR_OPEN_FILE 5
 #define ERROR_FILE_EXISTS 6
+#define ERROR_TARGET_NOT_FOUND 7
 
 #define MAX_LISTS 10
 #define MAX_PATH 256
@@ -41,9 +42,7 @@ int   create_list_file();
 
 char* load_path_list_file(int choice_list);
 
-int   load_list(int choice_list, 
-		int choice_type_insert, 
-		int data);
+LINKED_LIST*   load_list(int list_number); 
 
 int   load_list_info();
 
@@ -55,13 +54,21 @@ int   insert_node_at_end(LINKED_LIST** list,
                          NODE**        node, 
                          int           data);
 
-int   insert_node(LINKED_LIST** list,
-                  int           data,
-                  int           type_insert);
+
+int   action_main(int list_number,
+		  int data,
+		  int type_action);
+
+int   action_with_node(LINKED_LIST** list,
+                       int           data,
+                       int           type_insert);
 
 int   free_list(LINKED_LIST** list);
 
 int   delete_list_file(int list_number);
+
+int   delete_node_by_value(LINKED_LIST** list,
+			   int		 target);
 
 int   converting_to_string(LINKED_LIST** list, 
 			   char*         string, 
