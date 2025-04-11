@@ -19,8 +19,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 extern const char *list_info_file;
+
+void handle_signal(int signal);
+
+extern volatile sig_atomic_t keep_running;
 
 typedef struct NODE {
     int data;
@@ -42,18 +47,19 @@ int   create_list_file();
 
 char* load_path_list_file(int choice_list);
 
-LINKED_LIST*   load_list(int list_number); 
+LINKED_LIST* load_list(int list_number); 
 
 int   load_list_info();
 
 int   insert_node_at_beginning(LINKED_LIST** list, 
-                               NODE**        node, 
                                int           data);
 
 int   insert_node_at_end(LINKED_LIST** list, 
-                         NODE**        node, 
                          int           data);
 
+int   insert_value_after_node(int list_number,
+			      int target,
+			      int data);
 
 int   action_main(int list_number,
 		  int data,
